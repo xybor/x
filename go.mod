@@ -10,7 +10,6 @@ require (
 	github.com/redis/go-redis/v9 v9.6.2
 	github.com/stretchr/testify v1.9.0
 	github.com/xybor-x/snowflake v0.0.0-20241003160244-6f05a74b7417
-	github.com/xybor/todennus-backend v0.0.0-20241013184324-25f557bd2bdb
 )
 
 require (

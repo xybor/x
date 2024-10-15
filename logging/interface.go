@@ -48,9 +48,3 @@ func LogError(logger Logger, err error, a ...any) {
 		logger.Warn(err.Error(), a...)
 	}
 }
-
-func Ensure(logger Logger, f func(logger Logger)) {
-	if logger != nil {
-		f(logger)
-	}
-}

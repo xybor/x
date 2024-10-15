@@ -17,7 +17,7 @@ type RedisLock struct {
 	exipration time.Duration
 }
 
-func NewLock(redis *redis.Client, key string, exipration time.Duration) *RedisLock {
+func NewRedisLock(redis *redis.Client, key string, exipration time.Duration) *RedisLock {
 	return &RedisLock{
 		client:     redis,
 		key:        key,

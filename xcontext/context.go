@@ -28,7 +28,7 @@ func Logger(ctx context.Context) logging.Logger {
 		return val.(logging.Logger)
 	}
 
-	return nil
+	return logging.NewSLogger(logging.LevelDebug).With("logger", "temporary")
 }
 
 func RequestID(ctx context.Context) string {

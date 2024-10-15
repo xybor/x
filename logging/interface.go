@@ -49,7 +49,7 @@ func LogError(logger Logger, err error, a ...any) {
 	}
 }
 
-func Func(logger Logger, f func(logger Logger)) {
+func Ensure(logger Logger, f func(logger Logger)) {
 	if logger != nil {
 		f(logger)
 	}

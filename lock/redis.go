@@ -45,8 +45,6 @@ func (l *RedisLock) Lock(ctx context.Context) error {
 func (l *RedisLock) Unlock(ctx context.Context) {
 	_, err := l.client.Del(ctx, l.key).Result()
 	if err != nil {
-		if logger := xcontext.Logger(ctx); logger != nil {
-			logger.Warn("failed-to-release-redis-lock", "key", l.key, "err", err)
-		}
+		xcontext.Logger(ctx).Warn("failed-to-release-redis-lock", "key", l.key, "err", err)
 	}
 }

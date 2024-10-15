@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/xybor-x/snowflake"
 	"github.com/xybor/x/logging"
 	"github.com/xybor/x/scope"
 )
@@ -23,7 +24,11 @@ func WithLogger(ctx context.Context, logger logging.Logger) context.Context {
 }
 
 func Logger(ctx context.Context) logging.Logger {
-	return ctx.Value(loggerKey).(logging.Logger)
+	if val := ctx.Value(loggerKey); val != nil {
+		return val.(logging.Logger)
+	}
+
+	return nil
 }
 
 func RequestID(ctx context.Context) string {
@@ -35,16 +40,20 @@ func WithRequestTime(ctx context.Context, t time.Time) context.Context {
 }
 
 func RequestTime(ctx context.Context) time.Time {
-	return ctx.Value(requestTimeKey).(time.Time)
+	if val := ctx.Value(requestTimeKey); val != nil {
+		return val.(time.Time)
+	}
+
+	return time.Time{}
 }
 
-func WithRequestUserID(ctx context.Context, userID int64) context.Context {
+func WithRequestUserID(ctx context.Context, userID snowflake.ID) context.Context {
 	return context.WithValue(ctx, requestUserIDKey, userID)
 }
 
-func RequestUserID(ctx context.Context) int64 {
+func RequestUserID(ctx context.Context) snowflake.ID {
 	if val := ctx.Value(requestUserIDKey); val != nil {
-		return val.(int64)
+		return val.(snowflake.ID)
 	}
 
 	return 0

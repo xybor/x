@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrLock = errors.New("cannot lock")
+	ErrLock = errors.New("lock_fails")
 )
 
 type Locker interface {

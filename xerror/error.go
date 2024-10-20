@@ -21,17 +21,8 @@ func Is(err error, target error, others ...error) bool {
 func MessageOf(err error) string {
 	var serviceErr ServiceError
 	if errors.As(err, &serviceErr) {
-		return serviceErr.Message
+		return serviceErr.msg
 	}
 
 	return err.Error()
-}
-
-func ServerityOf(err error, defaultSereverity Serverity) Serverity {
-	var serviceErr ServiceError
-	if errors.As(err, &serviceErr) {
-		return serviceErr.Serverity
-	}
-
-	return defaultSereverity
 }

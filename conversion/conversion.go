@@ -1,11 +1,16 @@
-package x
+package conversion
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
 
-func any2int(a any, strict bool) (int64, error) {
+func ToInt(a any, strict bool) (int64, error) {
+	if a == nil {
+		a = ""
+	}
+
 	switch t := a.(type) {
 	case int:
 		return int64(t), nil
@@ -22,29 +27,37 @@ func any2int(a any, strict bool) (int64, error) {
 			return int64(t), nil
 		}
 
-		return 0, fmt.Errorf("%wexpected int, got float", ErrHTTPBadRequest)
+		return 0, errors.New("expected int, got float")
 	case float64:
 		if t == float64(int64(t)) {
 			return int64(t), nil
 		}
 
-		return 0, fmt.Errorf("%wexpected int, got float", ErrHTTPBadRequest)
+		return 0, errors.New("expected int, got float")
 	case string:
 		if !strict {
+			if t == "" {
+				return 0, nil
+			}
+
 			if n, err := strconv.ParseInt(t, 10, 64); err == nil {
 				return n, nil
 			}
 		}
 
-		return 0, fmt.Errorf("%wexpected int, got string", ErrHTTPBadRequest)
+		return 0, errors.New("expected int, got string")
 	case bool:
-		return 0, fmt.Errorf("%wexpected int, got bool", ErrHTTPBadRequest)
+		return 0, errors.New("expected int, got bool")
 	default:
 		return 0, fmt.Errorf("not handle for %T", t)
 	}
 }
 
-func any2float(a any, strict bool) (float64, error) {
+func ToFloat(a any, strict bool) (float64, error) {
+	if a == nil {
+		a = ""
+	}
+
 	switch t := a.(type) {
 	case int:
 		return float64(t), nil
@@ -62,20 +75,28 @@ func any2float(a any, strict bool) (float64, error) {
 		return float64(t), nil
 	case string:
 		if !strict {
+			if t == "" {
+				return 0, nil
+			}
+
 			if n, err := strconv.ParseFloat(t, 64); err == nil {
 				return n, nil
 			}
 		}
 
-		return 0, fmt.Errorf("%wexpected float, got string", ErrHTTPBadRequest)
+		return 0, errors.New("expected float, got string")
 	case bool:
-		return 0, fmt.Errorf("%wexpected float, got bool", ErrHTTPBadRequest)
+		return 0, errors.New("expected float, got bool")
 	default:
 		return 0, fmt.Errorf("not handle for %T", t)
 	}
 }
 
-func any2bool(a any, strict bool) (bool, error) {
+func ToBool(a any, strict bool) (bool, error) {
+	if a == nil {
+		a = ""
+	}
+
 	switch t := a.(type) {
 	case int:
 		if !strict {
@@ -86,7 +107,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case int8:
 		if !strict {
 			switch t {
@@ -96,7 +117,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case int16:
 		if !strict {
 			switch t {
@@ -106,7 +127,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case int32:
 		if !strict {
 			switch t {
@@ -116,7 +137,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case int64:
 		if !strict {
 			switch t {
@@ -126,7 +147,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case float32:
 		if !strict {
 			switch t {
@@ -136,7 +157,7 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case float64:
 		if !strict {
 			switch t {
@@ -146,15 +167,19 @@ func any2bool(a any, strict bool) (bool, error) {
 				return true, nil
 			}
 		}
-		return false, fmt.Errorf("%wexpected bool, got number", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got number")
 	case string:
 		if !strict {
+			if t == "" {
+				return false, nil
+			}
+
 			if b, err := strconv.ParseBool(t); err == nil {
 				return b, nil
 			}
 		}
 
-		return false, fmt.Errorf("%wexpected bool, got string", ErrHTTPBadRequest)
+		return false, errors.New("expected bool, got string")
 	case bool:
 		return t, nil
 	default:
@@ -162,50 +187,54 @@ func any2bool(a any, strict bool) (bool, error) {
 	}
 }
 
-func any2string(a any, strict bool) (string, error) {
+func ToString(a any, strict bool) (string, error) {
+	if a == nil {
+		a = ""
+	}
+
 	switch t := a.(type) {
 	case int:
 		if !strict {
 			return strconv.FormatInt(int64(t), 10), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case int8:
 		if !strict {
 			return strconv.FormatInt(int64(t), 10), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case int16:
 		if !strict {
 			return strconv.FormatInt(int64(t), 10), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case int32:
 		if !strict {
 			return strconv.FormatInt(int64(t), 10), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case int64:
 		if !strict {
 			return strconv.FormatInt(int64(t), 10), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case float32:
 		if !strict {
 			return strconv.FormatFloat(float64(t), 'f', -1, 32), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case float64:
 		if !strict {
 			return strconv.FormatFloat(float64(t), 'f', -1, 64), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got number", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got number")
 	case string:
 		return t, nil
 	case bool:
 		if !strict {
 			return strconv.FormatBool(t), nil
 		}
-		return "", fmt.Errorf("%wexpected string, got bool", ErrHTTPBadRequest)
+		return "", errors.New("expected string, got bool")
 	default:
 		return "", fmt.Errorf("not handle for %T", t)
 	}

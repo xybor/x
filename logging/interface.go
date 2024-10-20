@@ -1,9 +1,7 @@
 package logging
 
 import (
-	"errors"
-
-	"github.com/xybor/x/errorx"
+	"github.com/xybor/x/xerror"
 )
 
 type Level int
@@ -24,15 +22,15 @@ type Logger interface {
 	Critical(msg string, a ...any)
 }
 
-func Serverity2Level(s errorx.Serverity) Level {
+func Serverity2Level(s xerror.Serverity) Level {
 	switch s {
-	case errorx.ServerityDebug:
+	case xerror.ServerityDebug:
 		return LevelDebug
-	case errorx.ServerityInfo:
+	case xerror.ServerityInfo:
 		return LevelInfo
-	case errorx.ServerityWarn:
+	case xerror.ServerityWarn:
 		return LevelWarn
-	case errorx.ServerityCritical:
+	case xerror.ServerityCritical:
 		return LevelCritical
 	default:
 		panic("invalid serverity")
@@ -40,11 +38,6 @@ func Serverity2Level(s errorx.Serverity) Level {
 }
 
 func LogError(logger Logger, err error, a ...any) {
-	var serviceErr errorx.ServiceError
-	switch {
-	case errors.As(err, &serviceErr):
-		logger.Log(Serverity2Level(serviceErr.Serverity), err.Error(), a...)
-	default:
-		logger.Warn(err.Error(), a...)
-	}
+	parameter := append(a, "details", xerror.MessageOf(err))
+	logger.Log(Serverity2Level(xerror.ServerityOf(err, xerror.ServerityWarn)), err.Error(), parameter...)
 }

@@ -1,4 +1,4 @@
-package x
+package xstring
 
 import (
 	"slices"

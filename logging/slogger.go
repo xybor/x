@@ -34,7 +34,7 @@ func NewSLogger(level Level) *SLogger {
 
 	core := slog.New(handler)
 	if !core.Enabled(context.Background(), levelToSlogLevel(level)) {
-		panic("Cannot enable level")
+		panic("Failed to enable level")
 	}
 
 	return &SLogger{core: core}

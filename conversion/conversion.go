@@ -8,7 +8,7 @@ import (
 
 func ToInt(a any, strict bool) (int64, error) {
 	if a == nil {
-		a = ""
+		a = 0
 	}
 
 	switch t := a.(type) {
@@ -55,7 +55,7 @@ func ToInt(a any, strict bool) (int64, error) {
 
 func ToFloat(a any, strict bool) (float64, error) {
 	if a == nil {
-		a = ""
+		a = 0.0
 	}
 
 	switch t := a.(type) {
@@ -94,7 +94,7 @@ func ToFloat(a any, strict bool) (float64, error) {
 
 func ToBool(a any, strict bool) (bool, error) {
 	if a == nil {
-		a = ""
+		a = false
 	}
 
 	switch t := a.(type) {

@@ -19,13 +19,13 @@ func ParseHTTPRequest[T any](req *http.Request) (T, error) {
 	var t T
 
 	if err := parseURLParameter(&t, req); err != nil {
-		return t, err
+		return t, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 	}
 
 	switch req.Method {
 	case http.MethodGet:
 		if err := parseURLQuery(&t, req); err != nil {
-			return defaultT, err
+			return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 		}
 
 		return t, nil
@@ -35,13 +35,13 @@ func ParseHTTPRequest[T any](req *http.Request) (T, error) {
 		switch contentType {
 		case ContentTypeApplicationJSON:
 			if err := parseJSONBody(&t, req); err != nil {
-				return defaultT, err
+				return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 			}
 			return t, nil
 
 		case ContentTypeXWWWFormUrlEncoded:
 			if err := parseURLEncodedFormData(&t, req); err != nil {
-				return defaultT, err
+				return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 			}
 
 			return t, nil

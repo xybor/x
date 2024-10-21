@@ -17,24 +17,24 @@ type BaseAction struct {
 	current string
 }
 
-func newBaseAction(parent, current string) BaseAction {
+func newBaseAction(parent, current string) *BaseAction {
 	full := current
 	if parent != "" {
 		full = fmt.Sprintf("%s.%s", parent, current)
 	}
 
-	return BaseAction{current: current, full: full}
+	return &BaseAction{current: current, full: full}
 }
 
-func (action BaseAction) fullAction() string {
+func (action *BaseAction) fullAction() string {
 	return action.full
 }
 
-func (action BaseAction) String() string {
+func (action *BaseAction) String() string {
 	return action.current
 }
 
-func (action BaseAction) IsSubset(another Actioner) bool {
+func (action *BaseAction) IsSubset(another Actioner) bool {
 	if action.fullAction() == another.fullAction() {
 		return true
 	}
@@ -42,18 +42,18 @@ func (action BaseAction) IsSubset(another Actioner) bool {
 	return strings.Contains(action.fullAction(), another.fullAction()+".")
 }
 
-func DefineAction[A any]() (A, map[string]Actioner) {
-	var action A
+func DefineAction[A any]() (*A, map[string]Actioner) {
+	action := new(A)
 	m := map[string]Actioner{}
 
 	fulfill(
 		m,
-		"",                           // default as empty
-		"*",                          // default as empty
-		reflect.ValueOf(&action),     // rvalue
-		reflect.TypeOf(BaseAction{}), // basetype
-		newBaseAction,                // baseFunc
-		"action",                     // tag
+		"",                            // default as empty
+		"*",                           // default as empty
+		reflect.ValueOf(action),       // rvalue
+		reflect.TypeOf(&BaseAction{}), // basetype
+		newBaseAction,                 // baseFunc
+		"action",                      // tag
 	)
 	return action, m
 }

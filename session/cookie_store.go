@@ -19,25 +19,26 @@ func NewCookieStore[T any](authenticationKey, encryptionKey []byte) *CookieStore
 	}
 }
 
-func (store *CookieStore[T]) Load(ctx context.Context, session *Session) (T, error) {
-	var result T
+func (store *CookieStore[T]) Load(ctx context.Context, session *Session) (*T, error) {
+	result := new(T)
+
 	if session.ID() == "" {
 		return result, nil
 	}
 
 	m := map[any]any{}
 	if err := securecookie.DecodeMulti(SessionIDKey, session.ID(), &m, store.codecs...); err != nil {
-		return result, err
+		return nil, err
 	}
 
-	if err := xreflect.Parse(&result, false, "session", func(field string) any { return m[field] }); err != nil {
-		return result, err
+	if err := xreflect.Parse(result, false, "session", func(field string) any { return m[field] }); err != nil {
+		return nil, err
 	}
 
 	return result, nil
 }
 
-func (store *CookieStore[T]) Save(ctx context.Context, session *Session, t T) error {
+func (store *CookieStore[T]) Save(ctx context.Context, session *Session, t *T) error {
 	m := xreflect.ToMap(t, "session")
 	encoded, err := securecookie.EncodeMulti(SessionIDKey, m, store.codecs...)
 	if err != nil {

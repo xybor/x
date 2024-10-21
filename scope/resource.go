@@ -15,19 +15,19 @@ type BaseResource struct {
 	full string
 }
 
-func newBaseResource(parent, current string) BaseResource {
+func newBaseResource(parent, current string) *BaseResource {
 	if parent == "" {
-		return BaseResource{full: current}
+		return &BaseResource{full: current}
 	}
 
-	return BaseResource{full: fmt.Sprintf("%s.%s", parent, current)}
+	return &BaseResource{full: fmt.Sprintf("%s.%s", parent, current)}
 }
 
-func (resource BaseResource) String() string {
+func (resource *BaseResource) String() string {
 	return resource.full
 }
 
-func (resource BaseResource) IsSubset(another Resourcer) bool {
+func (resource *BaseResource) IsSubset(another Resourcer) bool {
 	if resource.String() == another.String() {
 		return true
 	}
@@ -39,18 +39,18 @@ func (resource BaseResource) IsSubset(another Resourcer) bool {
 	return strings.Contains(resource.String(), another.String()+".")
 }
 
-func DefineResource[T any]() (T, map[string]Resourcer) {
-	var resource T
+func DefineResource[R any]() (*R, map[string]Resourcer) {
+	resource := new(R)
 	m := map[string]Resourcer{}
 
 	fulfill(
 		m,
-		"",                             // default as empty
-		"",                             // root value
-		reflect.ValueOf(&resource),     // rvalue
-		reflect.TypeOf(BaseResource{}), // basetype
-		newBaseResource,                // baseFunc
-		"resource",                     // tag
+		"",                              // default as empty
+		"",                              // root value
+		reflect.ValueOf(resource),       // rvalue
+		reflect.TypeOf(&BaseResource{}), // basetype
+		newBaseResource,                 // baseFunc
+		"resource",                      // tag
 	)
 
 	return resource, m

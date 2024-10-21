@@ -2,8 +2,6 @@ package xcontext
 
 import (
 	"context"
-	"net/http"
-	"time"
 
 	"github.com/xybor-x/snowflake"
 	"github.com/xybor/x/logging"
@@ -15,9 +13,7 @@ type contextKey int
 
 const (
 	loggerKey contextKey = iota
-	httpRequestKey
 	requestIDKey
-	requestTimeKey
 	requestUserIDKey
 	scopeKey
 	sessionKey
@@ -36,36 +32,12 @@ func Logger(ctx context.Context) logging.Logger {
 	return logging.NewSLogger(logging.LevelDebug).With("logger", "temporary")
 }
 
-func WithHTTPRequest(ctx context.Context, r *http.Request) context.Context {
-	return context.WithValue(ctx, httpRequestKey, r)
-}
-
-func HTTPRequest(ctx context.Context) *http.Request {
-	if val := ctx.Value(httpRequestKey); val != nil {
-		return val.(*http.Request)
-	}
-
-	return nil
-}
-
 func WithRequestID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, requestIDKey, id)
 }
 
 func RequestID(ctx context.Context) string {
 	return ctx.Value(requestIDKey).(string)
-}
-
-func WithRequestTime(ctx context.Context, t time.Time) context.Context {
-	return context.WithValue(ctx, requestTimeKey, t)
-}
-
-func RequestTime(ctx context.Context) time.Time {
-	if val := ctx.Value(requestTimeKey); val != nil {
-		return val.(time.Time)
-	}
-
-	return time.Time{}
 }
 
 func WithRequestUserID(ctx context.Context, userID snowflake.ID) context.Context {
@@ -101,7 +73,7 @@ func Session(ctx context.Context) *session.Session {
 		return val.(*session.Session)
 	}
 
-	return &session.Session{}
+	return nil
 }
 
 func WithSessionManager(ctx context.Context, manager *session.Manager) context.Context {

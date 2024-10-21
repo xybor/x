@@ -28,9 +28,11 @@ func levelToSlogLevel(level Level) slog.Level {
 }
 
 func NewSLogger(level Level) *SLogger {
-	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	option := &slog.HandlerOptions{
 		Level: levelToSlogLevel(level),
-	})
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, option)
 
 	core := slog.New(handler)
 	if !core.Enabled(context.Background(), levelToSlogLevel(level)) {

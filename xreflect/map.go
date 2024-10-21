@@ -11,6 +11,11 @@ func ToMap(obj any, tagName string) map[any]any {
 	objType := reflect.TypeOf(obj)
 	objVal := reflect.ValueOf(obj)
 
+	if objType.Kind() == reflect.Pointer {
+		objType = objType.Elem()
+		objVal = objVal.Elem()
+	}
+
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldName := field.Name

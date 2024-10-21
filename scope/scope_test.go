@@ -8,33 +8,33 @@ import (
 )
 
 type AllActions struct {
-	scope.BaseAction
+	*scope.BaseAction
 
-	Read  scope.BaseAction
-	Write WriteAction
+	Read  *scope.BaseAction
+	Write *WriteAction
 }
 
 type WriteAction struct {
-	scope.BaseAction
+	*scope.BaseAction
 
-	Create scope.BaseAction
-	Update scope.BaseAction
-	Delete scope.BaseAction
+	Create *scope.BaseAction
+	Update *scope.BaseAction
+	Delete *scope.BaseAction
 }
 
 type AllResources struct {
-	scope.BaseResource
+	*scope.BaseResource
 
-	Client scope.BaseResource
-	User   UserResource
+	Client *scope.BaseResource
+	User   *UserResource
 }
 
 type UserResource struct {
-	scope.BaseResource
+	*scope.BaseResource
 
-	Email       scope.BaseResource
-	DisplayName scope.BaseResource `resource:"display_name"`
-	Avatar      scope.BaseResource
+	Email       *scope.BaseResource
+	DisplayName *scope.BaseResource `resource:"display_name"`
+	Avatar      *scope.BaseResource
 }
 
 var ResourceAll, ResourceMap = scope.DefineResource[AllResources]()

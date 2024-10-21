@@ -19,6 +19,11 @@ func fulfill[T Stringer, R any](
 	baseFunc func(string, string) T,
 	tagName string,
 ) {
+	if rvalue.IsNil() {
+		newValue := reflect.New(rvalue.Type().Elem())
+		rvalue.Set(newValue)
+	}
+
 	rtype := rvalue.Elem().Type()
 	rvalue = rvalue.Elem()
 	hasBase := false
@@ -55,7 +60,7 @@ func fulfill[T Stringer, R any](
 			fulfill(
 				m,
 				currentParent, fieldValue,
-				rvalue.FieldByName(rfield.Name).Addr(),
+				rvalue.FieldByName(rfield.Name),
 				baseType, baseFunc,
 				tagName,
 			)

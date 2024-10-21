@@ -20,7 +20,7 @@ func NewManager(path string, maxAge int) *Manager {
 	}
 }
 
-func (manager *Manager) Get(r *http.Request) (*Session, error) {
+func (manager Manager) Get(r *http.Request) (*Session, error) {
 	session, err := r.Cookie(SessionIDKey)
 	if err != nil && !errors.Is(err, http.ErrNoCookie) {
 		return nil, err
@@ -33,7 +33,7 @@ func (manager *Manager) Get(r *http.Request) (*Session, error) {
 	return &Session{id: session.Value}, nil
 }
 
-func (manager *Manager) Save(w http.ResponseWriter, session *Session) {
+func (manager Manager) Save(w http.ResponseWriter, session *Session) {
 	cookie := http.Cookie{
 		Name:     SessionIDKey,
 		Value:    session.id,

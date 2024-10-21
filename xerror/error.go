@@ -18,11 +18,16 @@ func Is(err error, target error, others ...error) bool {
 	return false
 }
 
-func MessageOf(err error) string {
-	var serviceErr ServiceError
-	if errors.As(err, &serviceErr) {
-		return serviceErr.msg
+func Iss(err error, targets ...error) bool {
+	if len(targets) == 0 {
+		panic("invalid targets")
 	}
 
-	return err.Error()
+	for _, target := range targets {
+		if errors.Is(err, target) {
+			return true
+		}
+	}
+
+	return false
 }

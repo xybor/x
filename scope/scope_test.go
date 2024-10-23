@@ -37,17 +37,18 @@ type UserResource struct {
 	Avatar      *scope.BaseResource
 }
 
-var ResourceAll, ResourceMap = scope.DefineResource[AllResources]()
-var ActionSet, ActionMap = scope.DefineAction[AllActions]()
+var ResourceAll, resourceMap = scope.DefineResource[AllResources]()
+var ActionSet, actionMap = scope.DefineAction[AllActions]()
+var Engine = scope.NewEngine("x", actionMap, resourceMap)
 
 func Test_DefineAction(t *testing.T) {
-	assert.Equal(t, ActionSet.String(), ActionMap["*"].String())
-	assert.Equal(t, ActionSet.Read.String(), ActionMap["read"].String())
-	assert.Equal(t, ActionSet.Read.String(), ActionMap["read"].String())
-	assert.Equal(t, ActionSet.Write.String(), ActionMap["write"].String())
-	assert.Equal(t, ActionSet.Write.Create.String(), ActionMap["create"].String())
-	assert.Equal(t, ActionSet.Write.Update.String(), ActionMap["update"].String())
-	assert.Equal(t, ActionSet.Write.Delete.String(), ActionMap["delete"].String())
+	assert.Equal(t, ActionSet.String(), actionMap["*"].String())
+	assert.Equal(t, ActionSet.Read.String(), actionMap["read"].String())
+	assert.Equal(t, ActionSet.Read.String(), actionMap["read"].String())
+	assert.Equal(t, ActionSet.Write.String(), actionMap["write"].String())
+	assert.Equal(t, ActionSet.Write.Create.String(), actionMap["create"].String())
+	assert.Equal(t, ActionSet.Write.Update.String(), actionMap["update"].String())
+	assert.Equal(t, ActionSet.Write.Delete.String(), actionMap["delete"].String())
 
 	assert.Equal(t, "*", ActionSet.String())
 	assert.Equal(t, "read", ActionSet.Read.String())
@@ -64,12 +65,12 @@ func Test_DefineAction(t *testing.T) {
 }
 
 func Test_DefineResource(t *testing.T) {
-	assert.Equal(t, ResourceAll.String(), ResourceMap[""].String())
-	assert.Equal(t, ResourceAll.User.String(), ResourceMap["user"].String())
-	assert.Equal(t, ResourceAll.Client.String(), ResourceMap["client"].String())
-	assert.Equal(t, ResourceAll.User.Email.String(), ResourceMap["user.email"].String())
-	assert.Equal(t, ResourceAll.User.Avatar.String(), ResourceMap["user.avatar"].String())
-	assert.Equal(t, ResourceAll.User.DisplayName.String(), ResourceMap["user.display_name"].String())
+	assert.Equal(t, ResourceAll.String(), resourceMap[""].String())
+	assert.Equal(t, ResourceAll.User.String(), resourceMap["user"].String())
+	assert.Equal(t, ResourceAll.Client.String(), resourceMap["client"].String())
+	assert.Equal(t, ResourceAll.User.Email.String(), resourceMap["user.email"].String())
+	assert.Equal(t, ResourceAll.User.Avatar.String(), resourceMap["user.avatar"].String())
+	assert.Equal(t, ResourceAll.User.DisplayName.String(), resourceMap["user.display_name"].String())
 
 	assert.Equal(t, "", ResourceAll.String())
 
@@ -91,45 +92,56 @@ func Test_DefineResource(t *testing.T) {
 
 func Test_SerializeScope(t *testing.T) {
 	scopes := scope.NewScopes(
-		scope.New(ActionSet.Read, ResourceAll.User),
-		scope.New(ActionSet.Write, ResourceAll.User.Avatar),
+		Engine.New(ActionSet.Read, ResourceAll.User),
+		Engine.New(ActionSet.Write, ResourceAll.User.Avatar),
 	)
 
-	assert.Equal(t, "read:user write:user.avatar", scopes.String())
+	assert.Equal(t, "[x]read:user [x]write:user.avatar", scopes.String())
 	assert.Equal(t, "", scope.NewScopes().String())
 }
 
-func Test_ParseScope(t *testing.T) {
-	parser := scope.NewEngine(ActionMap, ResourceMap)
-	scopes := parser.ParseScopes("read:user write:user.avatar")
+func Test_Engine_ParseScope(t *testing.T) {
+	engine := scope.NewEngine("custom", actionMap, resourceMap)
+	scopes := engine.ParseScopes("[custom]read:user write:user.avatar")
 
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User)))
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User.Email)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User.Email)))
 
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User.Avatar)))
-	assert.False(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User.Avatar)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User)))
 }
 
-func Test_ParseScopeEmpty(t *testing.T) {
-	parser := scope.NewEngine(ActionMap, ResourceMap)
-	scopes := parser.ParseScopes("")
+func Test_Engine_ParseScopeEmpty(t *testing.T) {
+	engine := scope.NewEngine("custom", actionMap, resourceMap)
+	scopes := engine.ParseScopes("")
 
-	assert.False(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User)))
-	assert.False(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User.Email)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User.Email)))
 
-	assert.False(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User.Avatar)))
-	assert.False(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User.Avatar)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User)))
 }
 
-func Test_ParseScopeAll(t *testing.T) {
-	parser := scope.NewEngine(ActionMap, ResourceMap)
-	scopes := parser.ParseScopes("*")
+func Test_Engine_ParseScopeAll(t *testing.T) {
+	engine := scope.NewEngine("custom", actionMap, resourceMap)
+	scopes := engine.ParseScopes("[custom]*")
 
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User)))
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Read, ResourceAll.User.Email)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User.Email)))
 
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User.Avatar)))
-	assert.True(t, scopes.Contains(scope.New(ActionSet.Write, ResourceAll.User)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User.Avatar)))
+	assert.True(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User)))
+}
+
+func Test_Engine_ParseScopeAll_Outside(t *testing.T) {
+	engine := scope.NewEngine("custom", actionMap, resourceMap)
+	scopes := engine.ParseScopes("*")
+
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Read, ResourceAll.User.Email)))
+
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User.Avatar)))
+	assert.False(t, scopes.Contains(engine.New(ActionSet.Write, ResourceAll.User)))
 }
 
 func Test_ScopesNil(t *testing.T) {
@@ -138,8 +150,21 @@ func Test_ScopesNil(t *testing.T) {
 }
 
 func Test_Scopes_Lessthan(t *testing.T) {
-	parser := scope.NewEngine(ActionMap, ResourceMap)
+	parser := scope.NewEngine("z", actionMap, resourceMap)
+
 	scopes := parser.ParseScopes("create:client something")
 	assert.Equal(t, "create:client something", scopes.String())
-	assert.True(t, scopes.LessThan(parser.ParseScopes("*")))
+	assert.False(t, scopes.LessThanOrEqual(parser.ParseScopes("[z]*")))
+
+	scopes = parser.ParseScopes("[z]create:client")
+	assert.Equal(t, "[z]create:client", scopes.String())
+	assert.True(t, scopes.LessThanOrEqual(parser.ParseScopes("[z]*")))
+
+	scopeA := parser.ParseScopes("[z]read:client")
+	scopeB := parser.ParseScopes("[z]read:client [z]read:user")
+	assert.True(t, scopeA.LessThanOrEqual(scopeB))
+
+	scopeA = parser.ParseScopes("[z]read:client")
+	scopeB = parser.ParseScopes("[z]read:client")
+	assert.False(t, !scopeA.LessThanOrEqual(scopeB))
 }

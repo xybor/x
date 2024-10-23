@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/xybor/x/xreflect"
@@ -14,55 +15,54 @@ const (
 	ContentTypeXWWWFormUrlEncoded = "application/x-www-form-urlencoded"
 )
 
-func ParseHTTPRequest[T any](req *http.Request) (T, error) {
-	var defaultT T
+func ParseHTTPRequest[T any](req *http.Request) (*T, error) {
 	var t T
 
 	if err := parseURLParameter(&t, req); err != nil {
-		return t, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
+		return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
+	}
+
+	if err := parseURLQuery(&t, req); err != nil {
+		return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 	}
 
 	switch req.Method {
 	case http.MethodGet:
-		if err := parseURLQuery(&t, req); err != nil {
-			return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
-		}
-
-		return t, nil
+		return &t, nil
 
 	case http.MethodPost, http.MethodPut, http.MethodDelete:
 		contentType := req.Header.Get("content-type")
 		switch contentType {
 		case ContentTypeApplicationJSON:
 			if err := parseJSONBody(&t, req); err != nil {
-				return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
+				return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 			}
-			return t, nil
+			return &t, nil
 
 		case ContentTypeXWWWFormUrlEncoded:
 			if err := parseURLEncodedFormData(&t, req); err != nil {
-				return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
+				return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, err.Error())
 			}
 
-			return t, nil
+			return &t, nil
 
 		default:
-			return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, fmt.Sprintf("not support content type %s", contentType))
+			return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, fmt.Sprintf("not support content type %s", contentType))
 		}
 
 	default:
-		return defaultT, fmt.Errorf("%w%s", ErrHTTPBadRequest, fmt.Sprintf("not support method %s", req.Method))
+		return nil, fmt.Errorf("%w%s", ErrHTTPBadRequest, fmt.Sprintf("not support method %s", req.Method))
 	}
 }
 
 func parseURLQuery(obj any, req *http.Request) error {
+	query := req.URL.Query()
 	return parse(obj, req, false, "query", func(r *http.Request, s string) any {
-		query := req.URL.Query()[s]
-		if len(query) == 0 {
+		if len(query[s]) == 0 {
 			return ""
 		}
 
-		return query[0]
+		return strings.Join(query[s], " ")
 	})
 }
 
@@ -84,8 +84,16 @@ func parseJSONBody(obj any, req *http.Request) error {
 }
 
 func parseURLEncodedFormData(obj any, req *http.Request) error {
+	if err := req.ParseForm(); err != nil {
+		return err
+	}
+
 	return parse(obj, req, false, "form", func(req *http.Request, fieldName string) any {
-		return req.FormValue(fieldName)
+		if len(req.Form[fieldName]) == 0 {
+			return ""
+		}
+
+		return strings.Join(req.Form[fieldName], " ")
 	})
 }
 

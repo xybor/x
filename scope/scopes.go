@@ -19,7 +19,7 @@ func (scopes Scopes) String() string {
 	return strings.Join(scopeValues, " ")
 }
 
-func (scopes Scopes) Contains(target Scope) bool {
+func (scopes Scopes) Contains(target Scoper) bool {
 	for _, scope := range scopes {
 		if scope.Contains(target) {
 			return true
@@ -29,15 +29,12 @@ func (scopes Scopes) Contains(target Scope) bool {
 	return false
 }
 
-func (scopes Scopes) LessThan(another Scopes) bool {
+func (scopes Scopes) LessThanOrEqual(another Scopes) bool {
 	for _, scope := range scopes {
-		if scope.IsUndefined() {
-			continue
-		}
-
 		isSubset := false
 		for _, targetScope := range another {
-			if relationship := relationship(scope, targetScope); relationship == scopeRelationshipSubset {
+			relationship := relationship(scope, targetScope)
+			if relationship == scopeRelationshipSubset || relationship == scopeRelationshipEqual {
 				isSubset = true
 				break
 			}

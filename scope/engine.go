@@ -1,44 +1,62 @@
 package scope
 
 import (
+	"fmt"
 	"strings"
 )
 
 type Engine struct {
+	source      string
 	actionMap   map[string]Actioner
 	resourceMap map[string]Resourcer
 }
 
-func NewEngine(actionMap map[string]Actioner, resourceMap map[string]Resourcer) Engine {
+func NewEngine(source string, actionMap map[string]Actioner, resourceMap map[string]Resourcer) Engine {
 	return Engine{
+		source:      source,
 		actionMap:   actionMap,
 		resourceMap: resourceMap,
 	}
 }
 
+func (engine Engine) New(action Actioner, resource Resourcer) Scope {
+	return New(engine.source, action, resource)
+}
+
 func (engine Engine) ParseScope(s string) Scoper {
 	s = strings.Trim(s, " ")
 	if s == "" {
-		return UndefinedScope(s)
+		return nil
 	}
 
-	actionStr, resourceStr, found := strings.Cut(s, ":")
+	optional := false
+	if s[0] == '@' {
+		s = s[1:]
+		optional = true
+	}
+
+	sourceStr := fmt.Sprintf("[%s]", engine.source)
+	if !strings.HasPrefix(s, sourceStr) {
+		return NewUndefinedScope(s).WithOptional(optional)
+	}
+
+	actionStr, resourceStr, found := strings.Cut(s[len(sourceStr):], ":")
 	if !found {
-		actionStr = s
+		actionStr = s[len(sourceStr):]
 		resourceStr = ""
 	}
 
 	action, ok := engine.actionMap[actionStr]
 	if !ok {
-		return UndefinedScope(s)
+		return NewUndefinedScope(s).WithOptional(optional)
 	}
 
 	resource, ok := engine.resourceMap[resourceStr]
 	if !ok {
-		return UndefinedScope(s)
+		return NewUndefinedScope(s).WithOptional(optional)
 	}
 
-	scope := New(action, resource)
+	scope := New(engine.source, action, resource).WithOptional(optional)
 	return scope
 }
 
@@ -51,7 +69,9 @@ func (engine Engine) ParseScopes(s string) Scopes {
 	scopesStr := strings.Split(s, " ")
 	scopes := Scopes{}
 	for _, str := range scopesStr {
-		scopes = append(scopes, engine.ParseScope(str))
+		if s := engine.ParseScope(str); s != nil {
+			scopes = append(scopes, s)
+		}
 	}
 
 	return scopes

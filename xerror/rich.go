@@ -45,12 +45,22 @@ func (err RichError) Event() string {
 func (err RichError) Detail() error {
 	return err.core.detail
 }
+
 func (err RichError) Attributes() []any {
 	return err.core.attributes
 }
 
 func (err RichError) Unwrap() error {
 	return err.core.code
+}
+
+func (err RichError) Reduce() error {
+	return RichError{
+		core: &richErrorCore{
+			code:        err.core.code,
+			description: err.core.description,
+		},
+	}
 }
 
 func Enrich(code error, description string, format ...any) RichError {
